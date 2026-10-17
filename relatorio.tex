@@ -6,333 +6,155 @@
 \usepackage[margin=2.2cm]{geometry}
 \graphicspath{{resultados/}}
 
-\title{Teoria da Informação - Primeira atividade em grupo\\
-       \large Relatório das simulações}
-\author{Grupo: Gabriel Takeuchi (13671636) \and Gabriela Victor (11795381) \and Francisco Membrive (12553782) \and Octavio Carneiro (13831609) \and Fernando Lima (13672710)}
+\title{Teoria da Informação -- Primeira Atividade em Grupo\\
+       \large Relatório das Simulações}
+\author{Gabriel Takeuchi (13671636) \and Gabriela Victor (11795381) \and Francisco Membrive (12553782) \and Octavio Carneiro (13831609) \and Fernando Lima (13672710) \and Pedro Bonifácio (14602244) \and Ulisses Cordeiro}
 \date{}
 
 \begin{document}
 \maketitle
 
-\section*{Resumo da entrega}
-Concluímos os quatro tópicos, cada um com todos os passos do roteiro. Materiais:
-\texttt{topico1.py}, \texttt{topico2.py}, \texttt{topico3.py}, \texttt{topico4.py}
-(código; os Tópicos 2 e 3 reaproveitam as funções de entropia, informação mútua e
-divergência definidas no Tópico 1), pasta \texttt{resultados/} (figuras e tabelas, geradas
-automaticamente pelos scripts com semente fixa) e este relatório. Todas as quantidades
-foram calculadas a partir de contagens feitas por nós. A função
-\texttt{scipy.stats.chi2\_contingency} foi usada apenas como conferência; da
-\texttt{scipy.stats} usamos ainda \texttt{chi2.sf} (valor $p$ do teste $G$) e
-\texttt{binom.sf} (erro teórico do código de repetição).
-
 %======================================================================
 \section{Tópico 1: Entropia, Informação Mútua e Teste de Independência}
 
-\subsection{O que foi feito}
-Modelo verdadeiro: prevalência $p(D=1)=0{,}10$, falso positivo $p(T=1|D=0)=0{,}05$ e
-falso negativo $p(T=0|D=1)=0{,}20$. Os valores teóricos são
-$H(D)\approx0{,}469$, $H(T)\approx0{,}544$, $H(D,T)\approx0{,}799$,
-$H(D|T)\approx0{,}255$ e $I(D;T)\approx0{,}214$ bits.
-Simulamos $D$ e depois $T$ condicionalmente a $D$, contamos as frequências da tabela
-$2\times2$ e estimamos as quantidades por \emph{plug-in}.
-\begin{itemize}
-  \item \textbf{Passo 4:} 500 repetições para cada $N\in\{20,\dots,10\,000\}$, tanto no
-        modelo verdadeiro quanto num cenário com $D$ e $T$ independentes.
-  \item \textbf{Passo 5:} modelo errado $q(D=1)=0{,}3$.
-  \item \textbf{Passos 6--8:} histórico de testes gerado por uma cadeia de Markov com
-        $P=\begin{psmallmatrix}0{,}9&0{,}1\\0{,}2&0{,}8\end{psmallmatrix}$, iniciada na
-        distribuição estacionária $\pi=(2/3,1/3)$. Usamos $200\,000$ históricos de 8 dias
-        e uma série única de $10^5$ dias.
-  \item \textbf{Passos 9--10:} teste $G=2N\ln(2)\,\hat I$, com $\chi^2_1$.
-\end{itemize}
+\subsection{Modelo de diagnóstico, convergência e custo de codificação}
+Definimos o modelo probabilístico do teste rápido de dengue com prevalência $p(D=1)=0{,}10$, taxa de falso positivo $p(T=1\mid D=0)=0{,}05$ e taxa de falso negativo $p(T=0\mid D=1)=0{,}20$. A partir de uma amostra simulada de $N=5\,000$ pacientes, construímos a tabela de contingência $2\times2$ e calculamos as entropias e a informação mútua pelas frequências relativas empíricas. A Tabela~\ref{tab:t1_p3} mostra que as estimativas ficaram bem próximas dos valores teóricos, preservando exatamente as identidades $H(D\mid T)=H(D,T)-H(T)$ e $I(D;T)=H(D)-H(D\mid T)\approx 0{,}214$ bits.
 
-\subsection{Resultados}
-\begin{table}[H]\centering\caption{Passos 1--3: teoria $\times$ estimativa.}
-  \input{resultados/tab_t1_passo3.tex}\end{table}
+\begin{table}[htbp]
+  \centering
+  \caption{Comparação entre valores teóricos e estimados na amostra ($N=5\,000$).}
+  \label{tab:t1_p3}
+  \input{resultados/tab_t1_passo3.tex}
+\end{table}
 
-\begin{table}[H]\centering\caption{Passo 4: estimativa de $I(D;T)$ em função de $N$
-  (teórico $\approx 0{,}214$). Últimas colunas: cenário independente ($I=0$).}
-  \input{resultados/tab_t1_passo4.tex}\end{table}
+Para analisar o comportamento do estimador em função do tamanho amostral, repetimos a simulação 500 vezes para $N\in\{20, 50, 100, 500, 2\,000, 10\,000\}$, tanto no modelo real quanto em um cenário com $D$ e $T$ independentes ($I=0$). Como ilustrado na Figura~\ref{fig:t1_p4}, o erro quadrático médio diminui conforme $N$ cresce, mas amostras pequenas sofrem com um viés positivo sistemático: para $N=20$, obtemos em média $\hat I\approx 0{,}248$ bits no modelo dependente e $\hat I\approx 0{,}039$ bits sob independência. Esse viés decorre da relação assintótica $2N\ln(2)\,\hat I \sim \chi^2_1$, cuja esperança implica $E[\hat I]\approx 1/(2N\ln 2)\approx 0{,}036$ bits para $N=20$.
 
-\begin{figure}[H]\centering
-  \includegraphics[width=\textwidth]{fig_t1_passo4.png}
-  \caption{Passo 4. Esquerda: convergência de $\hat I$. Direita: viés positivo de
-  $\hat I$ sob independência, comparado com $1/(2N\ln2)$.}\end{figure}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{fig_t1_passo4.png}
+  \caption{Convergência de $\hat I(D;T)$ com o tamanho da amostra (esquerda) e viés positivo sob independência comparado à aproximação teórica $1/(2N\ln 2)$ (direita).}
+  \label{fig:t1_p4}
+\end{figure}
 
-\begin{table}[H]\centering\caption{Passo 5: modelo errado $q=(0{,}7;0{,}3)$.}
-  \input{resultados/tab_t1_passo5.tex}\end{table}
+Avaliamos também o efeito de projetar a codificação assumindo uma distribuição incorreta $q(D=1)=0{,}30$. O custo teórico médio passa de $H(p)=0{,}4690$ para a entropia cruzada $H(p,q)=0{,}6368$ bits, resultando em um excesso igual à divergência de Kullback-Leibler $D(p\|q)=0{,}1678$ bits por paciente. Na amostra simulada, a diferença entre os comprimentos médios ideais ($-\log_2 q(d)$ versus $-\log_2 p(d)$) foi de $0{,}1799$ bits, ligeiramente acima do valor teórico devido à flutuação da frequência amostral de infectados ($9{,}4\%$). Além disso, verificamos a assimetria da divergência, uma vez que $D(q\|p)=0{,}2217 \neq D(p\|q)$.
 
-\begin{table}[H]\centering\caption{Passo 7: regra da cadeia dia a dia ($n=8$).}
-  \input{resultados/tab_t1_passo7.tex}\end{table}
+\subsection{Dependência temporal e teste de independência}
+Para incorporar a persistência temporal nos resultados de um mesmo paciente ao longo de $n=8$ dias, simulamos $200\,000$ históricos a partir de uma cadeia de Markov de dois estados com matriz de transição $P=\begin{psmallmatrix}0{,}9&0{,}1\\0{,}2&0{,}8\end{psmallmatrix}$, iniciada na distribuição estacionária $\pi=(2/3, 1/3)$. No primeiro dia, a incerteza é $H(T_1)\approx 0{,}918$ bits; a partir do segundo dia, a entropia condicional estabiliza em $\hat H(T_i\mid T_1,\dots,T_{i-1})\approx \hat H(T_i\mid T_{i-1})\approx 0{,}553$ bits, confirmando que dias anteriores a $i-1$ não trazem informação adicional dado o dia imediatamente anterior. Pela regra da cadeia, o histórico completo requer $H(T_1,\dots,T_8)\approx 4{,}78$ bits, contra $8H(T_1)\approx 7{,}34$ bits da transmissão independente dia a dia. A economia obtida é de $2{,}56$ bits por histórico de 8 dias, valor que coincide com $(n-1)I(T_i;T_{i-1})\approx 7\times 0{,}365$ bits.
 
-\begin{figure}[H]\centering
-  \includegraphics[width=0.6\textwidth]{fig_t1_passo7.png}
-  \caption{Passo 7: entropia condicional de cada dia.}\end{figure}
+Por fim, aplicamos o teste de independência baseado na estatística $G = 2N\ln(2)\,\hat I \sim \chi^2_1$ ($\alpha=5\%$). Na amostra principal, o teste rejeitou com folga a hipótese nula tanto para o par $(D,T)$ ($G=1422{,}2$, $p\ll 0{,}001$) quanto para dias consecutivos $(T_i,T_{i-1})$ ($G=1045{,}5$, $p\ll 0{,}001$), coincidindo exatamente com os resultados de \texttt{scipy.stats.chi2\_contingency} (com \texttt{correction=False}, já que a correção de Yates altera o valor em tabelas $2\times2$). Repetindo o teste 1\,000 vezes em três regimes (Tabela~\ref{tab:t1_p10}), vemos que sob dependência forte o poder é próximo de $100\%$ já para $N=100$, enquanto no cenário de dependência fraca ($I\approx 0{,}0026$) o poder sobe de $10{,}6\%$ ($N=100$) para $75{,}3\%$ ($N=2\,000$). Sob independência real, a taxa de rejeição fica próxima dos $5\%$ esperados para $N\ge 500$, mas sobe para $6{,}9\%$ em $N=100$, pois $96{,}2\%$ das tabelas geradas possuem células com contagem esperada menor que 5, comprometendo a aproximação qui-quadrado.
 
-\begin{table}[H]\centering\caption{Passo 8: economia por explorar a dependência temporal.}
-  \input{resultados/tab_t1_passo8.tex}\end{table}
-
-\begin{table}[H]\centering\caption{Passo 9: testes de independência ($\alpha=0{,}05$).}
-  \resizebox{\textwidth}{!}{\input{resultados/tab_t1_passo9.tex}}\end{table}
-
-\begin{table}[H]\centering\caption{Passo 10: fração de rejeições em 1000 repetições.}
-  \input{resultados/tab_t1_passo10.tex}\end{table}
-
-\begin{figure}[H]\centering
-  \includegraphics[width=0.6\textwidth]{fig_t1_passo10.png}
-  \caption{Passo 10: poder do teste (cenários forte e fraco) e taxa de erro tipo I
-  (cenário independente).}\end{figure}
-
-\subsection{As previsões teóricas se confirmaram?}
-\begin{itemize}
-  \item \textbf{Passo 3:} as estimativas ficaram próximas dos valores teóricos.
-        As identidades $H(D|T)=H(D,T)-H(T)$ e $I=H(D)-H(D|T)=H(T)-H(T|D)$ valem
-        exatamente também para as estimativas.
-  \item \textbf{Passo 4:} o erro diminui com $N$. Para $N$ pequeno, $\hat I$ é
-        sistematicamente maior que o valor verdadeiro. Sob independência,
-        $E[\hat I]\approx \mathrm{g.l.}/(2N\ln 2)$, que é a média da $\chi^2_1$
-        reescalada: cerca de $0{,}036$ bit para $N=20$, um valor que não é desprezível.
-  \item \textbf{Passo 5:} $H(p,q)-H(p)=D(p\|q)\approx 0{,}168$ bit. O custo médio medido
-        na amostra (comprimentos ideais $-\log_2 q(d)$) dá um excesso de
-        $\approx 0{,}180$ bit, próximo do teórico; a diferença vem da frequência amostral
-        de $D=1$ ($9{,}4\%$ em vez de $10\%$).
-        A divergência não é simétrica: $D(q\|p)\approx0{,}222\neq D(p\|q)$.
-  \item \textbf{Passo 7:} $\hat H(T_i|T_1,\dots,T_{i-1})\approx\hat H(T_i|T_{i-1})
-        \approx 0{,}553$ bit para $i\ge2$. Ou seja, dado o dia anterior, os dias mais
-        antigos não acrescentam informação (propriedade de Markov).
-        A soma das condicionais reproduz $H(T_1,\dots,T_8)\approx 4{,}79$ bits,
-        contra $8H(T_1)\approx 7{,}35$ bits no esquema ingênuo.
-  \item \textbf{Passo 8:} a economia é de $(n-1)\,I(T_i;T_{i-1})\approx 7\times0{,}365
-        \approx 2{,}55$ bits por histórico de 8 dias. Equivalentemente, a economia é de
-        $\approx 0{,}365$ bit por dia num histórico longo.
-  \item \textbf{Passo 9:} as estatísticas $G$ calculadas por nós coincidem com as da
-        \texttt{chi2\_contingency} (opção \texttt{lambda\_="log-likelihood"}).
-        Atenção: só há coincidência com \texttt{correction=False}, pois a função aplica
-        por padrão a correção de Yates em tabelas $2\times2$. As duas dependências
-        ($D$--$T$ e $T_{i-1}$--$T_i$) foram detectadas com folga.
-  \item \textbf{Passo 10:} no cenário forte, o teste rejeita $H_0$ praticamente sempre.
-        No cenário fraco ($I\approx0{,}003$ bit), o poder cresce com $N$.
-        No cenário independente, a fração de rejeições ficou próxima de
-        $\alpha=5\%$, que é a taxa de erro tipo I prevista.
-        Para $N=100$, muitas tabelas têm contagem esperada $<5$, e a aproximação
-        qui-quadrado fica menos confiável.
-\end{itemize}
+\begin{table}[htbp]
+  \centering
+  \caption{Taxa de rejeição de $H_0$ ($\alpha=5\%$) em 1\,000 repetições para diferentes cenários e tamanhos de amostra.}
+  \label{tab:t1_p10}
+  \input{resultados/tab_t1_passo10.tex}
+\end{table}
 
 %======================================================================
 \section{Tópico 2: Desigualdade de Processamento de Dados}
 
-\subsection{O que foi feito}
-\begin{itemize}
-  \item \textbf{Passos 1--6:} $X$ é um bit uniforme, passado por $k=10$ canais BSC($p$)
-        em série, com $N=200\,000$ mensagens. Como $j$ BSCs em série equivalem a um BSC
-        com $p_j=\frac{1-(1-2p)^j}{2}$, temos $I(X;Y_j)=1-H_b(p_j)$.
-        Medimos também $I(X;Y_2|Y_1)$ para conferir a propriedade de Markov.
-  \item \textbf{Passos 7--8:} o rótulo $X$ (gato/cachorro) gera uma ``imagem''
-        $\mathbf Z\sim\mathcal N(\boldsymbol\mu_X,\mathbf I_{16})$, com
-        $\boldsymbol\mu_0=\mathbf 0$ e $\boldsymbol\mu_1=0{,}4\,\mathbf s$
-        ($\mathbf s$ é um padrão de sinais $\pm1$). A compressão toma médias de blocos de
-        4 coordenadas ($16\to4$). A predição usa a média mais próxima no espaço comprimido.
-  \item \textbf{Passo 9:} colapso de modelo com $K=10$ categorias (distribuição de Zipf).
-        Cada geração estima as frequências relativas de uma amostra de tamanho
-        $n\in\{20,100,1000\}$ e gera a próxima. Fizemos 100 gerações e 200 repetições.
-\end{itemize}
+\subsection{Cadeia de canais ruidosos e pipeline de classificação}
+Simulamos o envio de um bit uniforme $X$ através de $k=10$ canais binários simétricos (BSC) em série, propagando $N=200\,000$ mensagens independentes. Como a composição de $j$ canais BSC($p$) equivale a um único BSC com probabilidade de inversão $p_j = \frac{1-(1-2p)^j}{2}$, a informação mútua teórica no elo $j$ é $I(X;Y_j) = 1 - H_b(p_j)$. A Figura~\ref{fig:t2_p56} mostra que $\hat I(X;Y_j)$ cai monotonicamente a cada etapa: para $p=0{,}1$, parte de $0{,}529$ bits no primeiro elo e chega a $0{,}008$ bits no décimo; para ruídos mais altos ($p=0{,}2$ e $0{,}3$), a informação se dissipa já nos primeiros estágios. Também verificamos na amostra que $\hat I(X;Y_2\mid Y_1)\approx 0$, como esperado pela propriedade de Markov. Em testes auxiliares com amostras pequenas ($N=200$), observamos pequenas oscilações positivas na curva estimada entre um elo e o seguinte, que desaparecem ao aumentar $N$, confirmando tratar-se apenas de variância amostral do estimador.
 
-\paragraph{Como estimamos $I$ para a imagem contínua (dúvida que tínhamos).}
-Discretizar diretamente 16 coordenadas é inviável: com $B$ caixas por coordenada seriam
-$B^{16}$ células. Contornamos isso com a própria desigualdade de processamento.
-A log-razão de verossimilhança $L(\mathbf z)=\log\frac{p(\mathbf z|X=1)}{p(\mathbf z|X=0)}$
-é uma estatística suficiente para $X$. Por isso $X\to\mathbf Z\to L$ e
-$X\to L\to\mathbf Z$ são ambas cadeias de Markov, e portanto $I(X;\mathbf Z)=I(X;L)$.
-$L$ é unidimensional: discretizamos em 50 caixas de quantis e usamos o estimador
-\emph{plug-in}. O valor teórico vem de $L|X\sim\mathcal N(\pm d^2/2,d^2)$, em que $d^2$
-é a distância de Mahalanobis entre as médias, e foi calculado por integração numérica.
-Na imagem completa, $d^2=2{,}56$. Na representação comprimida, $d^2=0{,}8$, porque parte do
-padrão $\mathbf s$ se cancela nas médias de blocos.
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{fig_t2_passo5_6.png}
+  \caption{Degradação da informação mútua $I(X;Y_j)$ ao longo dos 10 elos da cadeia para $p=0{,}1$ (esquerda) e comparação entre diferentes níveis de ruído (direita).}
+  \label{fig:t2_p56}
+\end{figure}
 
-\subsection{Resultados}
-\begin{table}[H]\centering\caption{Passo 4: $I(X;Y_j)$ ao longo da cadeia ($p=0{,}1$).}
-  \input{resultados/tab_t2_passo4.tex}\end{table}
+Em seguida, implementamos um pipeline em três etapas inspirado em aprendizado de máquina: o rótulo verdadeiro $X\in\{0,1\}$ gera uma ``imagem'' ruidosa $\mathbf Z\sim\mathcal N(\boldsymbol\mu_X,\mathbf I_{16})$ em $\mathbb R^{16}$ (com $\boldsymbol\mu_0=\mathbf 0$ e $\boldsymbol\mu_1=0{,}4\,\mathbf s$, sendo $\mathbf s\in\{-1,+1\}^{16}$), que é comprimida em um vetor de dimensão 4 tomando-se a média de blocos de 4 coordenadas e, por fim, classificada pela menor distância euclidiana às médias comprimidas. Para estimar a informação mútua nos estágios contínuos sem discretizar diretamente os espaços de 16 e 4 dimensões, projetamos os vetores na log-razão de verossimilhança (que é uma estatística suficiente unidimensional e, portanto, preserva $I(X;\mathbf Z)$) e discretizamos o resultado em 50 faixas de quantis. A Tabela~\ref{tab:t2_p8} confirma a desigualdade de processamento de dados ao longo do pipeline: a compressão reduz a informação de $0{,}353$ para $0{,}132$ bits (pois parte do sinal se cancela nas médias em bloco), e o classificador final retém $0{,}088$ bits (associado a um erro de classificação de $32{,}7\%$), sem conseguir recuperar o que foi perdido na etapa anterior.
 
-\begin{figure}[H]\centering
-  \includegraphics[width=\textwidth]{fig_t2_passo5_6.png}
-  \caption{Passos 5--6: degradação da informação elo após elo
-  (pontos: simulação; linhas: teoria).}\end{figure}
+\begin{table}[htbp]
+  \centering
+  \caption{Informação mútua entre o rótulo $X$ e cada estágio do pipeline de classificação.}
+  \label{tab:t2_p8}
+  \input{resultados/tab_t2_passo8.tex}
+\end{table}
 
-\begin{table}[H]\centering\caption{Passo 8: rótulo $\to$ imagem $\to$ compressão $\to$ predição.}
-  \input{resultados/tab_t2_passo8.tex}\end{table}
+\subsection{Colapso de modelo em gerações sucessivas}
+Para simular o fenômeno de colapso de modelo, consideramos uma distribuição original $p_{\text{real}}$ sobre $K=10$ categorias seguindo uma lei de Zipf ($H(p_{\text{real}})\approx 2{,}87$ bits). Na geração 0, sorteamos $n$ exemplos de $p_{\text{real}}$ e calculamos a distribuição empírica $q_0$; em cada geração seguinte $g$, sorteamos $n$ novos exemplos a partir de $q_{g-1}$, repetindo o processo por 100 gerações em 200 trajetórias independentes para $n\in\{20, 100, 1\,000\}$.
 
-\begin{table}[H]\centering\caption{Passo 9: colapso de modelo.}
-  \resizebox{\textwidth}{!}{\input{resultados/tab_t2_passo9.tex}}\end{table}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{fig_t2_passo9.png}
+  \caption{Evolução do colapso de modelo ao longo de 100 gerações para $n\in\{20, 100, 1000\}$: divergência $D(q_g\|p_{\text{real}})$, número médio de categorias sobreviventes e fração de trajetórias com $D(p_{\text{real}}\|q_g)=\infty$.}
+  \label{fig:t2_p9}
+\end{figure}
 
-\begin{figure}[H]\centering
-  \includegraphics[width=\textwidth]{fig_t2_passo9.png}
-  \caption{Passo 9: divergência, categorias sobreviventes e fração de trajetórias com
-  $D(p_{real}\|q_g)=\infty$.}\end{figure}
-
-\subsection{As previsões teóricas se confirmaram?}
-\begin{itemize}
-  \item \textbf{Passos 4--5:} $\hat I(X;Y_j)$ é não crescente e acompanha
-        $1-H_b(p_j)$: de $\approx0{,}531$ bit ($j=1$) para $\approx0{,}008$ bit ($j=10$).
-        Medimos $\hat I(X;Y_2|Y_1)\approx 0$, como exige uma cadeia de Markov, enquanto
-        $\hat I(X;Y_1|Y_2)>0$.
-  \item \textbf{Ruído de estimação:} num experimento à parte com $p=0{,}2$ e $N$ pequeno,
-        aparecem ``solavancos'' para cima na curva: em média $2{,}60$, $1{,}54$ e $0{,}52$
-        por cadeia de 10 elos para $N=200$, $2\,000$ e $20\,000$ (e nenhum na simulação
-        principal, com $N=200\,000$). Eles diminuem quando $N$ aumenta, o que confirma que
-        são flutuação amostral das estimativas, e não violações da desigualdade.
-  \item \textbf{Passo 6:} quanto maior $p$, mais rápida a queda, pois $(1-2p)^j$ decai
-        mais depressa. Com $p=0{,}3$, a informação some em poucos elos.
-  \item \textbf{Passo 8:} $I(X;\text{imagem})\ge I(X;\text{comprimida})\ge
-        I(X;\text{predição})$, com a predição em $1-H_b(P_e)\approx0{,}088$ bit
-        ($P_e\approx0{,}327$). Nenhuma regra de decisão aplicada à representação
-        comprimida recupera a informação perdida na compressão.
-  \item \textbf{Passo 9:} a cada geração, categorias raras podem não ser sorteadas.
-        Quando isso acontece, ficam com probabilidade zero para sempre, e
-        $D(p_{real}\|q_g)=\infty$. Por isso acompanhamos também $D(q_g\|p_{real})$,
-        o número de categorias vivas e $H(q_g)$.
-        A diversidade (entropia) cai geração após geração, muito mais depressa com
-        amostras pequenas ($n=20$). A longo prazo, cada trajetória tende a se concentrar
-        numa única categoria (estado absorvente), embora $E[q_g]=p_{real}$ em média.
-        Esse é o mecanismo do colapso de modelo.
-\end{itemize}
+Como mostra a Figura~\ref{fig:t2_p9}, sempre que uma categoria de menor probabilidade deixa de ser sorteada em uma geração, seu peso passa a ser zero em todas as gerações futuras, levando a divergência $D(p_{\text{real}}\|q_g)$ ao infinito. Acompanhando a divergência reversa $D(q_g\|p_{\text{real}})$ e o número de categorias ativas, fica claro o efeito do tamanho amostral: com $n=20$, as caudas desaparecem rapidamente e na geração 50 restam em média apenas $1{,}15$ categorias vivas ($H(q_g)\approx 0{,}11$ bits), colapsando a distribuição em um único estado absorvente. Com $n=1\,000$, o processo é bem mais lento (mantendo $7{,}34$ categorias vivas e $H\approx 2{,}33$ bits na geração 100), mas a perda progressiva de diversidade ocorre de forma inevitável.
 
 %======================================================================
-\section{Tópico 3: Compressão, AEP e Critério de Kelly}
+\section{Tópico 3: Compressão de Dados, AEP e Critério de Kelly}
 
-\subsection{O que foi feito}
-\begin{itemize}
-  \item \textbf{Modelo:} $m=3$ resultados, com $p=(0{,}5;\,0{,}3;\,0{,}2)$ e
-        $H(p)\approx1{,}485$ bits. Usamos cotações justas $o_i=3$ e cotações de uma casa
-        com margem, $o=(1{,}8;\,3{,}5;\,5)$, para verificar que os resultados sobre
-        divergência e informação lateral não dependem das cotações.
-  \item \textbf{Simulação:} 1000 temporadas de 1000 partidas, geradas como uma matriz
-        temporadas $\times$ rodadas. O patrimônio foi acompanhado em escala log (soma
-        acumulada de $\log_2 b_X o_X$).
-  \item \textbf{Informação lateral (Passo 9):} $P(Y=x|X=x)=0{,}6$, com sorteio pelo vetor
-        achatado da conjunta.
-  \item \textbf{Crença errada (Passo 11):} $q=(0{,}65;\,0{,}2;\,0{,}15)$.
-\end{itemize}
+\subsection{Comparação de estratégias e Propriedade de Equipartição Assintótica}
+Simulamos uma temporada de apostas esportivas com $m=3$ resultados de probabilidades reais $p=(0{,}5;\,0{,}3;\,0{,}2)$, o que resulta em entropia $H(p)\approx 1{,}485$ bits, e cotações uniformes justas $o_i=3$. Geramos $1\,000$ temporadas independentes de $n=1\,000$ rodadas cada, acompanhando a evolução do patrimônio em escala logarítmica ($\log_2(S_n/S_0) = \sum_{j=1}^n \log_2(b_{X_j}o_{X_j})$) para comparar três estratégias: apostar tudo no favorito ($b=(1,0,0)$), distribuir igualmente ($b_i=1/3$) e apostar segundo o critério de Kelly ($b_i=p_i$).
 
-\subsection{Resultados}
-\begin{figure}[H]\centering
-  \includegraphics[width=\textwidth]{fig_t3_passo4.png}
-  \caption{Passo 4: trajetórias de $\log_2(S_j/S_0)$.}\end{figure}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{fig_t3_passo4.png}
+  \caption{Evolução do logaritmo do patrimônio $\log_2(S_j/S_0)$ ao longo de uma temporada de 1\,000 partidas.}
+  \label{fig:t3_p4}
+\end{figure}
 
-\begin{table}[H]\centering\caption{Passos 6--7 ($o_i=3$, $n=1000$, 1000 temporadas).}
-  \resizebox{\textwidth}{!}{\input{resultados/tab_t3_passo6.tex}}\end{table}
+\begin{table}[htbp]
+  \centering
+  \caption{Desempenho das três estratégias em 1\,000 temporadas de $n=1\,000$ apostas ($o_i=3$).}
+  \label{tab:t3_p6}
+  \resizebox{\textwidth}{!}{\input{resultados/tab_t3_passo6.tex}}
+\end{table}
 
-\begin{figure}[H]\centering
-  \includegraphics[width=\textwidth]{fig_t3_passo8.png}
-  \caption{Passo 8: concentração da taxa de crescimento de Kelly em torno de $W^*$
-  e de $-\frac1n\log_2p(X^n)$ em torno de $H(p)$.}\end{figure}
+Os resultados na Figura~\ref{fig:t3_p4} e na Tabela~\ref{tab:t3_p6} evidenciam o contraste entre o retorno médio aritmético e a taxa de crescimento típica. Embora apostar tudo no favorito maximize o valor esperado $\frac{1}{n}\log_2 E[S_n] \approx 0{,}585$ bits (dominado pelo evento de probabilidade $0{,}5^{1000}$ em que o favorito vence todas as partidas), na prática o apostador vai à falência na primeira derrota ($100\%$ de ruína nas simulações, $W=-\infty$). A aposta uniforme preserva o capital fixo ($W=0$ pois $b_i o_i = 1$), enquanto a estratégia de Kelly apresenta crescimento exponencial consistente à taxa teórica $W^* = \log_2 3 - H(p) = 0{,}0995$ bits por partida (média empírica de $0{,}0998$ bits, superando $10^3 S_0$ em todas as temporadas simuladas).
 
-\begin{table}[H]\centering\caption{Passo 8: concentração com $n$ crescente.}
-  \resizebox{\textwidth}{!}{\input{resultados/tab_t3_passo8.tex}}\end{table}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{fig_t3_passo8.png}
+  \caption{Concentração da taxa de crescimento de Kelly em torno de $W^*$ (esquerda) e da entropia empírica $-\frac{1}{n}\log_2 p(X^n)$ em torno de $H(p)$ (direita) para $n\in\{10, 100, 1000\}$.}
+  \label{fig:t3_p8}
+\end{figure}
 
-\begin{table}[H]\centering\caption{Passos 9--10: ganho com informação lateral.}
-  \input{resultados/tab_t3_passo10.tex}\end{table}
+A conexão direta com a Propriedade de Equipartição Assintótica (AEP) é mostrada na Figura~\ref{fig:t3_p8}. À medida que a duração da temporada aumenta de $n=10$ para $n=1\,000$, a distribuição empírica de $-\frac{1}{n}\log_2 p(X^n)$ concentra-se em torno de $H(p)=1{,}485$ bits e a taxa de Kelly concentra-se em torno de $W^*=0{,}0995$ bits, com desvio padrão caindo na razão $1/\sqrt{n}$ (de $0{,}166$ para $0{,}017$). Com $n=1\,000$, $99{,}7\%$ das sequências geradas pertencem ao conjunto típico com tolerância $\varepsilon=0{,}05$.
 
-\begin{table}[H]\centering\caption{Passo 11: custo de apostar com a distribuição errada $q$.}
-  \input{resultados/tab_t3_passo11.tex}\end{table}
+\subsection{Informação lateral e custo de crenças incorretas}
+Avaliamos em seguida o efeito de uma dica imperfeita $Y$ antes de cada partida, configurada com probabilidade de acerto $P(Y=x\mid X=x)=0{,}60$, o que fornece informação mútua $I(X;Y)=0{,}1981$ bits. Utilizando a estratégia de Kelly condicional $b_i(y)=p(i\mid y)$, a taxa de crescimento média no cenário de cotações justas subiu de $0{,}0995$ para $0{,}2976$ bits, um ganho empírico $\Delta W = 0{,}1977$ bits que concorda com $I(X;Y)$. Repetindo o experimento com cotações de uma casa com margem de lucro, $o=(1{,}8;\,3{,}5;\,5)$, o apostador sem dica tem taxa negativa ($W^*=-0{,}0549$ bits/aposta), mas a informação lateral proporciona exatamente o mesmo acréscimo $\Delta W = 0{,}1977$ bits, tornando a operação lucrativa ($W=+0{,}1432$ bits).
 
-\subsection{As previsões teóricas se confirmaram?}
-\begin{itemize}
-  \item \textbf{Tudo no favorito:} $W=-\infty$. O apostador quebra na primeira partida
-        em que o favorito não vence, com probabilidade $1-0{,}5^n$. Paradoxalmente, é a
-        estratégia de maior valor \emph{esperado} ($E[S_n]=1{,}5^n S_0$): a média é
-        dominada por uma trajetória rara e astronômica que nunca observamos.
-  \item \textbf{Uniforme:} com $o_i=3$, temos $b_io_i=1$ e o patrimônio fica parado ($W=0$).
-  \item \textbf{Kelly:} a taxa empírica concordou com
-        $W^*=\log_2 3-H(p)\approx0{,}0995$ bit por aposta.
-  \item \textbf{Passo 8 (AEP):} as distribuições de $\frac1n\log_2 S_n$ e de
-        $-\frac1n\log_2 p(X^n)$ se concentram em torno de $W^*$ e de $H(p)$, com
-        desvio padrão caindo como $1/\sqrt n$. A fração de sequências típicas tende a 1.
-  \item \textbf{Passo 10:} $\Delta W\approx I(X;Y)\approx0{,}198$ bit nos dois conjuntos
-        de cotações. Com a casa com margem, Kelly sem dica perde dinheiro
-        ($W^*\approx-0{,}055$), mas a dica torna a aposta lucrativa ($\approx+0{,}143$).
-  \item \textbf{Passo 11:} a perda ficou em $\approx D(p\|q)\approx0{,}069$ bit por aposta,
-        igual para as duas cotações. De fato, partida a partida, a diferença dos
-        incrementos é $\log_2(p_X/q_X)$, e as cotações se cancelam.
-\end{itemize}
+Por outro lado, quando o apostador baseia suas frações de aposta em probabilidades incorretas $q=(0{,}65;\,0{,}20;\,0{,}15)$ (superestimando o favorito), sua taxa de crescimento nas cotações justas cai de $0{,}0995$ para $0{,}0302$ bits por partida. A perda média observada foi de $0{,}0690$ bits, confirmando a previsão teórica $W^* - W(q,p) = D(p\|q) = 0{,}0692$ bits tanto nas cotações justas quanto nas cotações com margem, já que os pagamentos $o_i$ se cancelam na diferença entre os log-retornos das duas estratégias.
 
 %======================================================================
-\section{Tópico 4: Capacidade de Canal e Códigos Corretores}
+\section{Tópico 4: Capacidade de Canal e Códigos Corretores de Erro}
 
-\subsection{O que foi feito}
-O enlace Terra--Marte foi modelado como canal binário simétrico (BSC): cada bit é
-invertido, independentemente, com probabilidade $p$. A simulação é bit a bit:
-sorteia-se um uniforme por bit, compara-se com $p$ e aplica-se XOR. A capacidade é
-\[
-  C = 1 - H_b(p), \qquad H_b(p) = -p\log_2 p-(1-p)\log_2(1-p).
-\]
-Comparamos três esquemas:
-\begin{itemize}
-  \item sem código ($R=1$);
-  \item repetição com $n_r$ ímpar e votação majoritária ($R=1/n_r$);
-  \item Hamming $(7,4)$ ($R=4/7$), com codificação $c = dG \bmod 2$ e decodificação
-        por síndrome $s = rH^\top \bmod 2$, cujo valor binário indica a posição do erro.
-\end{itemize}
-Antes da simulação, o Hamming foi testado inserindo um erro em cada uma das
-7 posições das 16 mensagens possíveis: todos os erros foram corrigidos.
-O erro da repetição foi conferido com a cauda binomial
-$P(X \ge \lfloor n_r/2\rfloor + 1)$, com $X\sim\mathrm{Bin}(n_r,p)$.
+\subsection{Desempenho dos códigos no canal binário simétrico}
+Modelamos o enlace de comunicação espacial como um canal binário simétrico (BSC) com probabilidade de inversão $p=0{,}10$, cuja capacidade teórica é $C = 1 - H_b(0{,}10) \approx 0{,}531$ bits por uso do canal. Comparamos três abordagens de transmissão: envio direto sem codificação ($R=1$), código de repetição com blocos de tamanho ímpar $n_r$ e decisão por maioria ($R=1/n_r$), e o código de Hamming $(7,4)$ ($R=4/7\approx 0{,}571$), implementado via multiplicação matricial em aritmética módulo 2 e decodificação por síndrome ($s = rH^\top \bmod 2$).
 
-\subsection{Resultados}
-Com $p=0{,}1$, temos $C\approx 0{,}531$. A Tabela~\ref{tab:p7} compara os três
-esquemas, e a Figura~\ref{fig:foto} mostra o efeito sobre uma ``foto''.
-
-\begin{table}[H]\centering
-  \caption{Passo 7 ($p=0{,}1$, $C\approx0{,}531$).}\label{tab:p7}
+\begin{table}[htbp]
+  \centering
+  \caption{Taxa de transmissão e erro de bit medido e teórico para $p=0{,}10$ ($C\approx 0{,}531$).}
+  \label{tab:t4_p7}
   \input{resultados/tab_passo7.tex}
 \end{table}
 
-\begin{figure}[H]\centering
-  \includegraphics[width=\textwidth]{fig_foto.png}
-  \caption{Imagem de 10\,000 bits transmitida pelos três esquemas ($p=0{,}1$).}\label{fig:foto}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{fig_foto.png}
+  \caption{Transmissão de uma imagem binária de $10\,000$ bits pelo canal BSC ($p=0{,}10$) usando os diferentes esquemas de codificação.}
+  \label{fig:t4_foto}
 \end{figure}
 
-\begin{figure}[H]\centering
-  \includegraphics[width=0.49\textwidth]{fig_passo8.png}
-  \includegraphics[width=0.49\textwidth]{fig_passo9.png}
-  \caption{Esquerda: erro de bit em função de $p$ (Passo 8).
-           Direita: erro em função da taxa $R$, com a capacidade $C$ em vermelho (Passo 9).}
-  \label{fig:p89}
+A Tabela~\ref{tab:t4_p7} reúne os resultados numéricos para $p=0{,}10$, e a Figura~\ref{fig:t4_foto} ilustra visualmente a recuperação de uma imagem de $100\times 100$ pixels. A transmissão direta apresenta erro de bit igual ao próprio ruído do canal ($10{,}1\%$). O código de Hamming $(7,4)$ reduz a taxa de erro de bit para $6{,}73\%$, mas como corrige apenas 1 erro por bloco de 7 bits, falha sempre que ocorrem 2 ou mais inversões no mesmo bloco (probabilidade teórica de $14{,}97\%$, medida em $14{,}95\%$), além de operar ligeiramente acima da capacidade ($R=0{,}571 > C$). Já os códigos de repetição $3\times$ ($R=0{,}333$) e $5\times$ ($R=0{,}200$) operam abaixo de $C$ e reduzem a taxa de erro para $2{,}78\%$ e $0{,}87\%$ (concordando com a cauda da distribuição binomial), limpando quase completamente a imagem ao custo de enviar 3 a 5 vezes mais bits pelo canal.
+
+\subsection{Variação do ruído e o limite do Teorema de Shannon}
+Na Figura~\ref{fig:t4_p89} (esquerda), variamos a probabilidade de erro do canal $p$ entre $0{,}01$ e $0{,}40$. Para canais pouco ruidosos ($p \le 0{,}05$), tanto o código de Hamming quanto os de repetição derrubam a taxa de erro em várias ordens de grandeza; contudo, conforme $p$ aumenta, a ocorrência de múltiplos erros por bloco torna o Hamming ineficaz antes dos códigos de repetição mais longos.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.48\textwidth]{fig_passo8.png}\hfill
+  \includegraphics[width=0.48\textwidth]{fig_passo9.png}
+  \caption{Esquerda: taxa de erro de bit em função do ruído $p$ do canal. Direita: queda do erro no código de repetição para $n_r$ crescente ($p=0{,}10$), acompanhada da redução da taxa efetiva $R=1/n_r$ em relação à capacidade $C$.}
+  \label{fig:t4_p89}
 \end{figure}
 
-\begin{table}[H]\centering
-  \caption{Passo 9: repetição com $n_r$ crescente ($p=0{,}1$).}\label{tab:p9}
-  \input{resultados/tab_passo9.tex}
-\end{table}
+Na Figura~\ref{fig:t4_p89} (direita), aumentamos o comprimento da repetição de $n_r=1$ até $n_r=13$ fixando $p=0{,}10$. Embora a taxa de erro de bit caia continuamente até $8{,}8\times 10^{-5}$ em $n_r=13$, isso só é alcançado porque a taxa de transmissão $R=1/n_r$ cai para $0{,}077$, afastando-se cada vez mais da capacidade $C\approx 0{,}531$. Esse comportamento contrasta com o Teorema da Codificação de Canal de Shannon, que garante a existência de códigos capazes de atingir probabilidade de erro arbitrariamente pequena mantendo uma taxa $R$ fixa e próxima de $C$, desde que $R<C$ e os blocos codificados sejam suficientemente longos.
 
-\begin{table}[H]\centering
-  \caption{Passo 10: $p=0{,}2$, $C\approx0{,}278$.}\label{tab:p10}
-  \input{resultados/tab_passo10.tex}
-\end{table}
-
-\begin{figure}[H]\centering
-  \includegraphics[width=0.6\textwidth]{fig_passo10.png}
-  \caption{Passo 10: a região $R>C$ está sombreada.}\label{fig:p10}
-\end{figure}
-
-\subsection{As previsões teóricas se confirmaram?}
-\begin{itemize}
-  \item \textbf{Sem código:} o erro medido ficou próximo de $p$, como previsto.
-  \item \textbf{Repetição:} o erro medido concordou com a binomial
-        (teoria: $0{,}028$ para $n_r=3$ e $\approx 0{,}0086$ para $n_r=5$ com $p=0{,}1$).
-  \item \textbf{Hamming:} o erro de bloco concordou com $P(\ge 2 \text{ erros em } 7)\approx 0{,}150$.
-        Com $p=0{,}1$, o Hamming tem $R=0{,}571>C=0{,}531$, ou seja, já opera acima
-        da capacidade.
-  \item \textbf{Passo 8:} para $p$ pequeno, os códigos reduzem drasticamente o erro.
-        Conforme $p$ cresce, a vantagem diminui, e o Hamming (que corrige só 1 erro por
-        bloco de 7) é o primeiro a perdê-la.
-  \item \textbf{Passo 9:} o erro da repetição cai com $n_r$, mas apenas porque
-        $R=1/n_r\to 0$. Isso \emph{não} é a promessa de Shannon, que garante erro
-        arbitrariamente pequeno com \emph{taxa fixa} $R<C$, usando códigos melhores
-        com blocos longos.
-  \item \textbf{Passo 10:} todos os esquemas com $R>C$ mantiveram erro de bit alto, e
-        quase nenhuma mensagem de 100 bits chegou intacta, o que é coerente com a parte
-        inversa do teorema. Ressalva: testamos apenas os nossos códigos; o teorema vale
-        para \emph{qualquer} código.
-\end{itemize}
+Por fim, testamos um cenário mais severo com $p=0{,}20$, onde a capacidade do canal cai para $C\approx 0{,}278$ bits por uso. Nessa condição, todos os esquemas com taxa $R > C$ — sem código ($R=1$), Hamming ($R=0{,}571$) e repetição $3\times$ ($R=0{,}333$) — apresentaram taxas de erro de bit altas ($19{,}9\%$, $19{,}7\%$ e $10{,}4\%$), fazendo com que nenhuma mensagem de 100 bits chegasse intacta ($0{,}0\%$ de sucesso). Somente ao reduzir a taxa para a região $R < C$, usando repetição $5\times$ ($R=0{,}200$, erro de $5{,}8\%$), $9\times$ ($R=0{,}111$, erro de $2{,}0\%$) e $15\times$ ($R=0{,}067$, erro de $0{,}43\%$ e $65{,}1\%$ de mensagens de 100 bits sem erro), foi possível voltar a controlar os erros de transmissão, ilustrando na prática a barreira imposta pela capacidade de Shannon.
 
 \end{document}
