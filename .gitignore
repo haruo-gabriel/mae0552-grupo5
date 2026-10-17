@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+resultados/saida_*.txt
+
+# LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz

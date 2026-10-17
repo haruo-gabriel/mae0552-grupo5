@@ -22,9 +22,10 @@ Concluímos os quatro tópicos, cada um com todos os passos do roteiro. Materiai
 (código; os Tópicos 2 e 3 reaproveitam as funções de entropia, informação mútua e
 divergência definidas no Tópico 1), pasta \texttt{resultados/} (figuras e tabelas, geradas
 automaticamente pelos scripts com semente fixa) e este relatório. Todas as quantidades
-foram calculadas a partir de contagens feitas por nós; funções de biblioteca
-(\texttt{scipy.stats.chi2\_contingency}, \texttt{scipy.stats.binom}) foram usadas apenas
-como conferência.
+foram calculadas a partir de contagens feitas por nós. A função
+\texttt{scipy.stats.chi2\_contingency} foi usada apenas como conferência; da
+\texttt{scipy.stats} usamos ainda \texttt{chi2.sf} (valor $p$ do teste $G$) e
+\texttt{binom.sf} (erro teórico do código de repetição).
 
 %======================================================================
 \section{Tópico 1: Entropia, Informação Mútua e Teste de Independência}
@@ -93,8 +94,10 @@ $2\times2$ e estimamos as quantidades por \emph{plug-in}.
         sistematicamente maior que o valor verdadeiro. Sob independência,
         $E[\hat I]\approx \mathrm{g.l.}/(2N\ln 2)$, que é a média da $\chi^2_1$
         reescalada: cerca de $0{,}036$ bit para $N=20$, um valor que não é desprezível.
-  \item \textbf{Passo 5:} $H(p,q)-H(p)=D(p\|q)\approx 0{,}168$ bit, confirmado também
-        pelo custo médio medido na amostra (comprimentos ideais $-\log_2 q(d)$).
+  \item \textbf{Passo 5:} $H(p,q)-H(p)=D(p\|q)\approx 0{,}168$ bit. O custo médio medido
+        na amostra (comprimentos ideais $-\log_2 q(d)$) dá um excesso de
+        $\approx 0{,}180$ bit, próximo do teórico; a diferença vem da frequência amostral
+        de $D=1$ ($9{,}4\%$ em vez de $10\%$).
         A divergência não é simétrica: $D(q\|p)\approx0{,}222\neq D(p\|q)$.
   \item \textbf{Passo 7:} $\hat H(T_i|T_1,\dots,T_{i-1})\approx\hat H(T_i|T_{i-1})
         \approx 0{,}553$ bit para $i\ge2$. Ou seja, dado o dia anterior, os dias mais
@@ -174,10 +177,11 @@ padrão $\mathbf s$ se cancela nas médias de blocos.
         $1-H_b(p_j)$: de $\approx0{,}531$ bit ($j=1$) para $\approx0{,}008$ bit ($j=10$).
         Medimos $\hat I(X;Y_2|Y_1)\approx 0$, como exige uma cadeia de Markov, enquanto
         $\hat I(X;Y_1|Y_2)>0$.
-  \item \textbf{Ruído de estimação:} com $N$ pequeno (p.\,ex.\ 200) aparecem
-        ``solavancos'' para cima na curva. Eles desaparecem quando $N$ aumenta, o que
-        confirma que são ruído de estimação (viés $\sim 1/(2N\ln2)$), e não violações da
-        desigualdade.
+  \item \textbf{Ruído de estimação:} num experimento à parte com $p=0{,}2$ e $N$ pequeno,
+        aparecem ``solavancos'' para cima na curva: em média $2{,}60$, $1{,}54$ e $0{,}52$
+        por cadeia de 10 elos para $N=200$, $2\,000$ e $20\,000$ (e nenhum na simulação
+        principal, com $N=200\,000$). Eles diminuem quando $N$ aumenta, o que confirma que
+        são flutuação amostral das estimativas, e não violações da desigualdade.
   \item \textbf{Passo 6:} quanto maior $p$, mais rápida a queda, pois $(1-2p)^j$ decai
         mais depressa. Com $p=0{,}3$, a informação some em poucos elos.
   \item \textbf{Passo 8:} $I(X;\text{imagem})\ge I(X;\text{comprimida})\ge
@@ -200,7 +204,7 @@ padrão $\mathbf s$ se cancela nas médias de blocos.
 \subsection{O que foi feito}
 \begin{itemize}
   \item \textbf{Modelo:} $m=3$ resultados, com $p=(0{,}5;\,0{,}3;\,0{,}2)$ e
-        $H(p)\approx1{,}486$ bits. Usamos cotações justas $o_i=3$ e cotações de uma casa
+        $H(p)\approx1{,}485$ bits. Usamos cotações justas $o_i=3$ e cotações de uma casa
         com margem, $o=(1{,}8;\,3{,}5;\,5)$, para verificar que os resultados sobre
         divergência e informação lateral não dependem das cotações.
   \item \textbf{Simulação:} 1000 temporadas de 1000 partidas, geradas como uma matriz
