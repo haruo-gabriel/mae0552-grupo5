@@ -9,5 +9,7 @@ resultados/saida_*.txt
 *.out
 *.toc
 *.synctex.gz
+*.fls
+*.fdb_latexmk
 
 .vscode/
