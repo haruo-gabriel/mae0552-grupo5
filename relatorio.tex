@@ -1,0 +1,342 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{amsmath,amssymb,mathtools,booktabs,graphicx,float}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{mathtools}
+\graphicspath{{resultados/}}
+
+\title{Teoria da Informação --- Primeira atividade em grupo\\
+       \large Relatório das simulações}
+\author{Grupo: Nome 1 (NUSP) \and Nome 2 (NUSP) \and Nome 3 (NUSP) \and Nome 4 (NUSP)
+        \and Nome 5 (NUSP) \and Nome 6 (NUSP)}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Resumo da entrega}
+Concluímos os quatro tópicos, cada um com todos os passos do roteiro. Materiais:
+\texttt{topico1.py}, \texttt{topico2.py}, \texttt{topico3.py}, \texttt{topico4.py}
+(código; os Tópicos 2 e 3 reaproveitam as funções de entropia, informação mútua e
+divergência definidas no Tópico 1), pasta \texttt{resultados/} (figuras e tabelas, geradas
+automaticamente pelos scripts com semente fixa) e este relatório. Todas as quantidades
+foram calculadas a partir de contagens feitas por nós; funções de biblioteca
+(\texttt{scipy.stats.chi2\_contingency}, \texttt{scipy.stats.binom}) foram usadas apenas
+como conferência.
+
+%======================================================================
+\section{Tópico 1: Entropia, Informação Mútua e Teste de Independência}
+
+\subsection{O que foi feito}
+Modelo verdadeiro: prevalência $p(D=1)=0{,}10$, falso positivo $p(T=1|D=0)=0{,}05$ e
+falso negativo $p(T=0|D=1)=0{,}20$. Os valores teóricos são
+$H(D)\approx0{,}469$, $H(T)\approx0{,}544$, $H(D,T)\approx0{,}799$,
+$H(D|T)\approx0{,}255$ e $I(D;T)\approx0{,}214$ bits.
+Simulamos $D$ e depois $T$ condicionalmente a $D$, contamos as frequências da tabela
+$2\times2$ e estimamos as quantidades por \emph{plug-in}.
+\begin{itemize}
+  \item \textbf{Passo 4:} 500 repetições para cada $N\in\{20,\dots,10\,000\}$, tanto no
+        modelo verdadeiro quanto num cenário com $D$ e $T$ independentes.
+  \item \textbf{Passo 5:} modelo errado $q(D=1)=0{,}3$.
+  \item \textbf{Passos 6--8:} histórico de testes gerado por uma cadeia de Markov com
+        $P=\begin{psmallmatrix}0{,}9&0{,}1\\0{,}2&0{,}8\end{psmallmatrix}$, iniciada na
+        distribuição estacionária $\pi=(2/3,1/3)$. Usamos $200\,000$ históricos de 8 dias
+        e uma série única de $10^5$ dias.
+  \item \textbf{Passos 9--10:} teste $G=2N\ln(2)\,\hat I$, com $\chi^2_1$.
+\end{itemize}
+
+\subsection{Resultados}
+\begin{table}[H]\centering\caption{Passos 1--3: teoria $\times$ estimativa.}
+  \input{resultados/tab_t1_passo3.tex}\end{table}
+
+\begin{table}[H]\centering\caption{Passo 4: estimativa de $I(D;T)$ em função de $N$
+  (teórico $\approx 0{,}214$). Últimas colunas: cenário independente ($I=0$).}
+  \input{resultados/tab_t1_passo4.tex}\end{table}
+
+\begin{figure}[H]\centering
+  \includegraphics[width=\textwidth]{fig_t1_passo4.png}
+  \caption{Passo 4. Esquerda: convergência de $\hat I$. Direita: viés positivo de
+  $\hat I$ sob independência, comparado com $1/(2N\ln2)$.}\end{figure}
+
+\begin{table}[H]\centering\caption{Passo 5: modelo errado $q=(0{,}7;0{,}3)$.}
+  \input{resultados/tab_t1_passo5.tex}\end{table}
+
+\begin{table}[H]\centering\caption{Passo 7: regra da cadeia dia a dia ($n=8$).}
+  \input{resultados/tab_t1_passo7.tex}\end{table}
+
+\begin{figure}[H]\centering
+  \includegraphics[width=0.6\textwidth]{fig_t1_passo7.png}
+  \caption{Passo 7: entropia condicional de cada dia.}\end{figure}
+
+\begin{table}[H]\centering\caption{Passo 8: economia por explorar a dependência temporal.}
+  \input{resultados/tab_t1_passo8.tex}\end{table}
+
+\begin{table}[H]\centering\caption{Passo 9: testes de independência ($\alpha=0{,}05$).}
+  \resizebox{\textwidth}{!}{\input{resultados/tab_t1_passo9.tex}}\end{table}
+
+\begin{table}[H]\centering\caption{Passo 10: fração de rejeições em 1000 repetições.}
+  \input{resultados/tab_t1_passo10.tex}\end{table}
+
+\begin{figure}[H]\centering
+  \includegraphics[width=0.6\textwidth]{fig_t1_passo10.png}
+  \caption{Passo 10: poder do teste (cenários forte e fraco) e taxa de erro tipo I
+  (cenário independente).}\end{figure}
+
+\subsection{As previsões teóricas se confirmaram?}
+\begin{itemize}
+  \item \textbf{Passo 3:} as estimativas ficaram próximas dos valores teóricos.
+        As identidades $H(D|T)=H(D,T)-H(T)$ e $I=H(D)-H(D|T)=H(T)-H(T|D)$ valem
+        exatamente também para as estimativas.
+  \item \textbf{Passo 4:} o erro diminui com $N$. Para $N$ pequeno, $\hat I$ é
+        sistematicamente maior que o valor verdadeiro. Sob independência,
+        $E[\hat I]\approx \mathrm{g.l.}/(2N\ln 2)$, que é a média da $\chi^2_1$
+        reescalada: cerca de $0{,}036$ bit para $N=20$, um valor que não é desprezível.
+  \item \textbf{Passo 5:} $H(p,q)-H(p)=D(p\|q)\approx 0{,}168$ bit, confirmado também
+        pelo custo médio medido na amostra (comprimentos ideais $-\log_2 q(d)$).
+        A divergência não é simétrica: $D(q\|p)\approx0{,}222\neq D(p\|q)$.
+  \item \textbf{Passo 7:} $\hat H(T_i|T_1,\dots,T_{i-1})\approx\hat H(T_i|T_{i-1})
+        \approx 0{,}553$ bit para $i\ge2$. Ou seja, dado o dia anterior, os dias mais
+        antigos não acrescentam informação (propriedade de Markov).
+        A soma das condicionais reproduz $H(T_1,\dots,T_8)\approx 4{,}79$ bits,
+        contra $8H(T_1)\approx 7{,}35$ bits no esquema ingênuo.
+  \item \textbf{Passo 8:} a economia é de $(n-1)\,I(T_i;T_{i-1})\approx 7\times0{,}365
+        \approx 2{,}55$ bits por histórico de 8 dias. Equivalentemente, a economia é de
+        $\approx 0{,}365$ bit por dia num histórico longo.
+  \item \textbf{Passo 9:} as estatísticas $G$ calculadas por nós coincidem com as da
+        \texttt{chi2\_contingency} (opção \texttt{lambda\_="log-likelihood"}).
+        Atenção: só há coincidência com \texttt{correction=False}, pois a função aplica
+        por padrão a correção de Yates em tabelas $2\times2$. As duas dependências
+        ($D$--$T$ e $T_{i-1}$--$T_i$) foram detectadas com folga.
+  \item \textbf{Passo 10:} no cenário forte, o teste rejeita $H_0$ praticamente sempre.
+        No cenário fraco ($I\approx0{,}003$ bit), o poder cresce com $N$.
+        No cenário independente, a fração de rejeições ficou próxima de
+        $\alpha=5\%$, que é a taxa de erro tipo I prevista.
+        Para $N=100$, muitas tabelas têm contagem esperada $<5$, e a aproximação
+        qui-quadrado fica menos confiável.
+\end{itemize}
+
+%======================================================================
+\section{Tópico 2: Desigualdade de Processamento de Dados}
+
+\subsection{O que foi feito}
+\begin{itemize}
+  \item \textbf{Passos 1--6:} $X$ é um bit uniforme, passado por $k=10$ canais BSC($p$)
+        em série, com $N=200\,000$ mensagens. Como $j$ BSCs em série equivalem a um BSC
+        com $p_j=\frac{1-(1-2p)^j}{2}$, temos $I(X;Y_j)=1-H_b(p_j)$.
+        Medimos também $I(X;Y_2|Y_1)$ para conferir a propriedade de Markov.
+  \item \textbf{Passos 7--8:} o rótulo $X$ (gato/cachorro) gera uma ``imagem''
+        $\mathbf Z\sim\mathcal N(\boldsymbol\mu_X,\mathbf I_{16})$, com
+        $\boldsymbol\mu_0=\mathbf 0$ e $\boldsymbol\mu_1=0{,}4\,\mathbf s$
+        ($\mathbf s$ é um padrão de sinais $\pm1$). A compressão toma médias de blocos de
+        4 coordenadas ($16\to4$). A predição usa a média mais próxima no espaço comprimido.
+  \item \textbf{Passo 9:} colapso de modelo com $K=10$ categorias (distribuição de Zipf).
+        Cada geração estima as frequências relativas de uma amostra de tamanho
+        $n\in\{20,100,1000\}$ e gera a próxima. Fizemos 100 gerações e 200 repetições.
+\end{itemize}
+
+\paragraph{Como estimamos $I$ para a imagem contínua (dúvida que tínhamos).}
+Discretizar diretamente 16 coordenadas é inviável: com $B$ caixas por coordenada seriam
+$B^{16}$ células. Contornamos isso com a própria desigualdade de processamento.
+A log-razão de verossimilhança $L(\mathbf z)=\log\frac{p(\mathbf z|X=1)}{p(\mathbf z|X=0)}$
+é uma estatística suficiente para $X$. Por isso $X\to\mathbf Z\to L$ e
+$X\to L\to\mathbf Z$ são ambas cadeias de Markov, e portanto $I(X;\mathbf Z)=I(X;L)$.
+$L$ é unidimensional: discretizamos em 50 caixas de quantis e usamos o estimador
+\emph{plug-in}. O valor teórico vem de $L|X\sim\mathcal N(\pm d^2/2,d^2)$, em que $d^2$
+é a distância de Mahalanobis entre as médias, e foi calculado por integração numérica.
+Na imagem completa, $d^2=2{,}56$. Na representação comprimida, $d^2=0{,}8$, porque parte do
+padrão $\mathbf s$ se cancela nas médias de blocos.
+
+\subsection{Resultados}
+\begin{table}[H]\centering\caption{Passo 4: $I(X;Y_j)$ ao longo da cadeia ($p=0{,}1$).}
+  \input{resultados/tab_t2_passo4.tex}\end{table}
+
+\begin{figure}[H]\centering
+  \includegraphics[width=\textwidth]{fig_t2_passo5_6.png}
+  \caption{Passos 5--6: degradação da informação elo após elo
+  (pontos: simulação; linhas: teoria).}\end{figure}
+
+\begin{table}[H]\centering\caption{Passo 8: rótulo $\to$ imagem $\to$ compressão $\to$ predição.}
+  \input{resultados/tab_t2_passo8.tex}\end{table}
+
+\begin{table}[H]\centering\caption{Passo 9: colapso de modelo.}
+  \resizebox{\textwidth}{!}{\input{resultados/tab_t2_passo9.tex}}\end{table}
+
+\begin{figure}[H]\centering
+  \includegraphics[width=\textwidth]{fig_t2_passo9.png}
+  \caption{Passo 9: divergência, categorias sobreviventes e fração de trajetórias com
+  $D(p_{real}\|q_g)=\infty$.}\end{figure}
+
+\subsection{As previsões teóricas se confirmaram?}
+\begin{itemize}
+  \item \textbf{Passos 4--5:} $\hat I(X;Y_j)$ é não crescente e acompanha
+        $1-H_b(p_j)$: de $\approx0{,}531$ bit ($j=1$) para $\approx0{,}008$ bit ($j=10$).
+        Medimos $\hat I(X;Y_2|Y_1)\approx 0$, como exige uma cadeia de Markov, enquanto
+        $\hat I(X;Y_1|Y_2)>0$.
+  \item \textbf{Ruído de estimação:} com $N$ pequeno (p.\,ex.\ 200) aparecem
+        ``solavancos'' para cima na curva. Eles desaparecem quando $N$ aumenta, o que
+        confirma que são ruído de estimação (viés $\sim 1/(2N\ln2)$), e não violações da
+        desigualdade.
+  \item \textbf{Passo 6:} quanto maior $p$, mais rápida a queda, pois $(1-2p)^j$ decai
+        mais depressa. Com $p=0{,}3$, a informação some em poucos elos.
+  \item \textbf{Passo 8:} $I(X;\text{imagem})\ge I(X;\text{comprimida})\ge
+        I(X;\text{predição})$, com a predição em $1-H_b(P_e)\approx0{,}088$ bit
+        ($P_e\approx0{,}327$). Nenhuma regra de decisão aplicada à representação
+        comprimida recupera a informação perdida na compressão.
+  \item \textbf{Passo 9:} a cada geração, categorias raras podem não ser sorteadas.
+        Quando isso acontece, ficam com probabilidade zero para sempre, e
+        $D(p_{real}\|q_g)=\infty$. Por isso acompanhamos também $D(q_g\|p_{real})$,
+        o número de categorias vivas e $H(q_g)$.
+        A diversidade (entropia) cai geração após geração, muito mais depressa com
+        amostras pequenas ($n=20$). A longo prazo, cada trajetória tende a se concentrar
+        numa única categoria (estado absorvente), embora $E[q_g]=p_{real}$ em média.
+        Esse é o mecanismo do colapso de modelo.
+\end{itemize}
+
+%======================================================================
+\section{Tópico 3: Compressão, AEP e Critério de Kelly}
+
+\subsection{O que foi feito}
+\begin{itemize}
+  \item \textbf{Modelo:} $m=3$ resultados, com $p=(0{,}5;\,0{,}3;\,0{,}2)$ e
+        $H(p)\approx1{,}486$ bits. Usamos cotações justas $o_i=3$ e cotações de uma casa
+        com margem, $o=(1{,}8;\,3{,}5;\,5)$, para verificar que os resultados sobre
+        divergência e informação lateral não dependem das cotações.
+  \item \textbf{Simulação:} 1000 temporadas de 1000 partidas, geradas como uma matriz
+        temporadas $\times$ rodadas. O patrimônio foi acompanhado em escala log (soma
+        acumulada de $\log_2 b_X o_X$).
+  \item \textbf{Informação lateral (Passo 9):} $P(Y=x|X=x)=0{,}6$, com sorteio pelo vetor
+        achatado da conjunta.
+  \item \textbf{Crença errada (Passo 11):} $q=(0{,}65;\,0{,}2;\,0{,}15)$.
+\end{itemize}
+
+\subsection{Resultados}
+\begin{figure}[H]\centering
+  \includegraphics[width=\textwidth]{fig_t3_passo4.png}
+  \caption{Passo 4: trajetórias de $\log_2(S_j/S_0)$.}\end{figure}
+
+\begin{table}[H]\centering\caption{Passos 6--7 ($o_i=3$, $n=1000$, 1000 temporadas).}
+  \resizebox{\textwidth}{!}{\input{resultados/tab_t3_passo6.tex}}\end{table}
+
+\begin{figure}[H]\centering
+  \includegraphics[width=\textwidth]{fig_t3_passo8.png}
+  \caption{Passo 8: concentração da taxa de crescimento de Kelly em torno de $W^*$
+  e de $-\frac1n\log_2p(X^n)$ em torno de $H(p)$.}\end{figure}
+
+\begin{table}[H]\centering\caption{Passo 8: concentração com $n$ crescente.}
+  \resizebox{\textwidth}{!}{\input{resultados/tab_t3_passo8.tex}}\end{table}
+
+\begin{table}[H]\centering\caption{Passos 9--10: ganho com informação lateral.}
+  \input{resultados/tab_t3_passo10.tex}\end{table}
+
+\begin{table}[H]\centering\caption{Passo 11: custo de apostar com a distribuição errada $q$.}
+  \input{resultados/tab_t3_passo11.tex}\end{table}
+
+\subsection{As previsões teóricas se confirmaram?}
+\begin{itemize}
+  \item \textbf{Tudo no favorito:} $W=-\infty$. O apostador quebra na primeira partida
+        em que o favorito não vence, com probabilidade $1-0{,}5^n$. Paradoxalmente, é a
+        estratégia de maior valor \emph{esperado} ($E[S_n]=1{,}5^n S_0$): a média é
+        dominada por uma trajetória rara e astronômica que nunca observamos.
+  \item \textbf{Uniforme:} com $o_i=3$, temos $b_io_i=1$ e o patrimônio fica parado ($W=0$).
+  \item \textbf{Kelly:} a taxa empírica concordou com
+        $W^*=\log_2 3-H(p)\approx0{,}0995$ bit por aposta.
+  \item \textbf{Passo 8 (AEP):} as distribuições de $\frac1n\log_2 S_n$ e de
+        $-\frac1n\log_2 p(X^n)$ se concentram em torno de $W^*$ e de $H(p)$, com
+        desvio padrão caindo como $1/\sqrt n$. A fração de sequências típicas tende a 1.
+  \item \textbf{Passo 10:} $\Delta W\approx I(X;Y)\approx0{,}198$ bit nos dois conjuntos
+        de cotações. Com a casa com margem, Kelly sem dica perde dinheiro
+        ($W^*\approx-0{,}055$), mas a dica torna a aposta lucrativa ($\approx+0{,}143$).
+  \item \textbf{Passo 11:} a perda ficou em $\approx D(p\|q)\approx0{,}069$ bit por aposta,
+        igual para as duas cotações. De fato, partida a partida, a diferença dos
+        incrementos é $\log_2(p_X/q_X)$, e as cotações se cancelam.
+\end{itemize}
+
+%======================================================================
+\section{Tópico 4: Capacidade de Canal e Códigos Corretores}
+
+\subsection{O que foi feito}
+O enlace Terra--Marte foi modelado como canal binário simétrico (BSC): cada bit é
+invertido, independentemente, com probabilidade $p$. A simulação é bit a bit:
+sorteia-se um uniforme por bit, compara-se com $p$ e aplica-se XOR. A capacidade é
+\[
+  C = 1 - H_b(p), \qquad H_b(p) = -p\log_2 p-(1-p)\log_2(1-p).
+\]
+Comparamos três esquemas:
+\begin{itemize}
+  \item sem código ($R=1$);
+  \item repetição com $n_r$ ímpar e votação majoritária ($R=1/n_r$);
+  \item Hamming $(7,4)$ ($R=4/7$), com codificação $c = dG \bmod 2$ e decodificação
+        por síndrome $s = rH^\top \bmod 2$, cujo valor binário indica a posição do erro.
+\end{itemize}
+Antes da simulação, o Hamming foi testado inserindo um erro em cada uma das
+7 posições das 16 mensagens possíveis: todos os erros foram corrigidos.
+O erro da repetição foi conferido com a cauda binomial
+$P(X \ge \lfloor n_r/2\rfloor + 1)$, com $X\sim\mathrm{Bin}(n_r,p)$.
+
+\subsection{Resultados}
+Com $p=0{,}1$, temos $C\approx 0{,}531$. A Tabela~\ref{tab:p7} compara os três
+esquemas, e a Figura~\ref{fig:foto} mostra o efeito sobre uma ``foto''.
+
+\begin{table}[H]\centering
+  \caption{Passo 7 ($p=0{,}1$, $C\approx0{,}531$).}\label{tab:p7}
+  \input{resultados/tab_passo7.tex}
+\end{table}
+
+\begin{figure}[H]\centering
+  \includegraphics[width=\textwidth]{fig_foto.png}
+  \caption{Imagem de 10\,000 bits transmitida pelos três esquemas ($p=0{,}1$).}\label{fig:foto}
+\end{figure}
+
+\begin{figure}[H]\centering
+  \includegraphics[width=0.49\textwidth]{fig_passo8.png}
+  \includegraphics[width=0.49\textwidth]{fig_passo9.png}
+  \caption{Esquerda: erro de bit em função de $p$ (Passo 8).
+           Direita: erro em função da taxa $R$, com a capacidade $C$ em vermelho (Passo 9).}
+  \label{fig:p89}
+\end{figure}
+
+\begin{table}[H]\centering
+  \caption{Passo 9: repetição com $n_r$ crescente ($p=0{,}1$).}\label{tab:p9}
+  \input{resultados/tab_passo9.tex}
+\end{table}
+
+\begin{table}[H]\centering
+  \caption{Passo 10: $p=0{,}2$, $C\approx0{,}278$.}\label{tab:p10}
+  \input{resultados/tab_passo10.tex}
+\end{table}
+
+\begin{figure}[H]\centering
+  \includegraphics[width=0.6\textwidth]{fig_passo10.png}
+  \caption{Passo 10: a região $R>C$ está sombreada.}\label{fig:p10}
+\end{figure}
+
+\subsection{As previsões teóricas se confirmaram?}
+\begin{itemize}
+  \item \textbf{Sem código:} o erro medido ficou próximo de $p$, como previsto.
+  \item \textbf{Repetição:} o erro medido concordou com a binomial
+        (teoria: $0{,}028$ para $n_r=3$ e $\approx 0{,}0086$ para $n_r=5$ com $p=0{,}1$).
+  \item \textbf{Hamming:} o erro de bloco concordou com $P(\ge 2 \text{ erros em } 7)\approx 0{,}150$.
+        Com $p=0{,}1$, o Hamming tem $R=0{,}571>C=0{,}531$, ou seja, já opera acima
+        da capacidade.
+  \item \textbf{Passo 8:} para $p$ pequeno, os códigos reduzem drasticamente o erro.
+        Conforme $p$ cresce, a vantagem diminui, e o Hamming (que corrige só 1 erro por
+        bloco de 7) é o primeiro a perdê-la.
+  \item \textbf{Passo 9:} o erro da repetição cai com $n_r$, mas apenas porque
+        $R=1/n_r\to 0$. Isso \emph{não} é a promessa de Shannon, que garante erro
+        arbitrariamente pequeno com \emph{taxa fixa} $R<C$, usando códigos melhores
+        com blocos longos.
+  \item \textbf{Passo 10:} todos os esquemas com $R>C$ mantiveram erro de bit alto, e
+        quase nenhuma mensagem de 100 bits chegou intacta, o que é coerente com a parte
+        inversa do teorema. Ressalva: testamos apenas os nossos códigos; o teorema vale
+        para \emph{qualquer} código.
+\end{itemize}
+
+\section*{Dúvidas}
+A principal dúvida que tivemos --- como calcular $I(X;\mathbf Z)$ quando $\mathbf Z$ é a
+``imagem'' gaussiana de 16 dimensões do Tópico 2 --- foi resolvida durante o trabalho com a
+estatística suficiente (log-razão de verossimilhança), que reduz o problema a uma dimensão;
+a justificativa completa está na seção do Tópico 2. Não restaram outras dúvidas.
+
+\end{document}
