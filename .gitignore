@@ -9,3 +9,5 @@ resultados/saida_*.txt
 *.out
 *.toc
 *.synctex.gz
+
+.vscode/
